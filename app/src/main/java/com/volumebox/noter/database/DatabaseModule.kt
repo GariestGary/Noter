@@ -1,4 +1,4 @@
-package com.volumebox.noter
+package com.volumebox.noter.database
 
 import android.content.Context
 import androidx.room.Room
@@ -19,9 +19,13 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "notes.db"
-        ).build()
+        ).allowMainThreadQueries().build()
     }
 
     @Provides
     fun provideNoteDao(database: AppDatabase): NoteDao = database.noteDao()
+    @Provides
+    fun provideNoteTagDao(database: AppDatabase): NoteTagDao = database.noteTagDao()
+    @Provides
+    fun provideNoteWithTagsDao(database: AppDatabase): NoteWithTagsDao = database.noteWithTagsDao()
 }
