@@ -13,21 +13,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.volumebox.noter.database.NoteWithTags
-import com.volumebox.noter.viewmodel.NoteViewModel
-import kotlinx.coroutines.flow.asFlow
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+import com.volumebox.noter.states.NoteState
+import com.volumebox.noter.states.TagState
 
 @Composable
 fun NoteView(
-    state: NoteWithTags,
+    state: NoteState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -48,16 +44,69 @@ fun NoteView(
         ) {
             Column {
                 Text(
-                    text = state.note.text,
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = state.name,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
                     items(state.tags) { tag ->
                         NoteTagView(tag)
                     }
                 }
             }
         }
+    }
+}
+
+@Preview(name = "Note with Tags", showBackground = false)
+@Composable
+fun NoteViewWithTagsPreview() {
+    MaterialTheme {
+        NoteView(
+            state = NoteState(
+                name = "Shopping List",
+                text = "Milk, Eggs, Bread",
+                tags = listOf(
+                    TagState(name = "Shopping", color = Color(0xFF4CAF50)),
+                    TagState(name = "Urgent", color = Color(0xFFF44336))
+                )
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Note without Tags", showBackground = false)
+@Composable
+fun NoteViewWithoutTagsPreview() {
+    MaterialTheme {
+        NoteView(
+            state = NoteState(
+                name = "Meeting Notes",
+                text = "Discuss project timeline and deliverables"
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Long Note Title", showBackground = false)
+@Composable
+fun NoteViewLongTitlePreview() {
+    MaterialTheme {
+        NoteView(
+            state = NoteState(
+                name = "This is a very long note title that should wrap to multiple lines if needed",
+                text = "Short content",
+                tags = listOf(
+                    TagState(name = "Important", color = Color(0xFF2196F3)),
+                    TagState(name = "Work", color = Color(0xFF9C27B0))
+                )
+            ),
+            onClick = {}
+        )
     }
 }

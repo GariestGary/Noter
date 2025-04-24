@@ -90,6 +90,9 @@ interface NoteTagDao {
 
     @Query("SELECT * FROM notetag")
     fun getAll(): Flow<List<NoteTag>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM NoteTag WHERE uid = :tagId LIMIT 1)")
+    suspend fun tagExists(tagId: String): Boolean
 }
 
 @Dao

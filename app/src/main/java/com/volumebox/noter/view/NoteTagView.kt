@@ -10,16 +10,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.volumebox.noter.database.NoteTag
+import com.volumebox.noter.states.TagState
 
 @Composable
-fun NoteTagView(tag: NoteTag) {
+fun NoteTagView(state: TagState) {
     Surface(
-        color = Color(tag.color),
+        color = state.color,
         shape = RoundedCornerShape(4.dp),
         modifier = Modifier.padding(end = 4.dp)
     ) {
         Text(
-            text = tag.name,
+            text = state.name,
             color = Color.White,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.bodySmall

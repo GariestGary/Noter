@@ -1,5 +1,7 @@
 package com.volumebox.noter.database
 
+import androidx.compose.ui.graphics.toArgb
+import com.volumebox.noter.states.NoteState
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -10,7 +12,21 @@ class NoteRepository @Inject constructor(
 ) {
     fun getAllNotes(): Flow<List<Note>> = noteDao.getAll()
 
-    suspend fun addNote(note: Note) {
+    suspend fun addNote(noteState: NoteState) {
+        val note = Note(name = noteState.name, text = noteState.text)
+        noteDao.insertAll(note)
+        for (tag in noteState.tags)
+        {
+            if(noteTagDao.tagExists(tag.uid)) {
+                addTagToNote(note.uid, tag.uid)
+            } else {
+                createAndAddTagToNote(note.uid, tag.name, tag.color.toArgb())
+            }
+        }
+    }
+
+    suspend fun addNote(name: String, text: String) {
+        val note = Note(name = name, text = text)
         noteDao.insertAll(note)
     }
 

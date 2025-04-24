@@ -6,21 +6,18 @@ import androidx.compose.runtime.setValue
 import com.volumebox.noter.database.Note
 import com.volumebox.noter.database.NoteTag
 
-class NoteState {
+class NoteState(uid: String = "", name: String = "", text: String = "", tags: List<TagState> = emptyList()) {
     // Use mutableStateOf to make these properties observable by Compose
-    var name by mutableStateOf("")
-    var text by mutableStateOf("")
-    var tags by mutableStateOf<List<NoteTag>>(emptyList())
+    var uid by mutableStateOf(uid)
+    var name by mutableStateOf(name)
+    var text by mutableStateOf(text)
+    var tags by mutableStateOf(tags)
     
     // Helper method to reset the state
     fun reset() {
+        uid = ""
         name = ""
         text = ""
         tags = emptyList()
-    }
-    
-    // Convert state to Note entity
-    fun toNote(): Note {
-        return Note(name = name, text = text)
     }
 }

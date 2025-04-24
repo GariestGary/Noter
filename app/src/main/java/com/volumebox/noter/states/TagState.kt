@@ -3,30 +3,22 @@ package com.volumebox.noter.states
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import com.volumebox.noter.database.NoteTag
 
 /**
  * State holder for tag creation/editing in the UI
  */
-class TagState {
+class TagState(uid: String = "", name: String = "", color: Color = Color.White) {
     // Use mutableStateOf to make these properties observable by Compose
-    var name by mutableStateOf("")
-    var color by mutableStateOf(0xFFFFFFFF.toInt())  // Default to white with alpha
+    var uid by mutableStateOf(uid)
+    var name by mutableStateOf(name)
+    var color by mutableStateOf(color)  // Default to white with alpha
     
     // Helper method to reset the state
     fun reset() {
+        uid = ""
         name = ""
-        color = 0xFFFFFFFF.toInt()
-    }
-    
-    // Convert state to NoteTag entity
-    fun toNoteTag(): NoteTag {
-        return NoteTag(name = name, color = color)
-    }
-    
-    // Helper to update from an existing tag
-    fun updateFromTag(tag: NoteTag) {
-        name = tag.name
-        color = tag.color
+        color = Color.White
     }
 } 
