@@ -135,53 +135,30 @@ fun EditNoteScreenView(
                         )
                     )
 
-                    // Tags Section
-                    Text(
-                        text = "Tags",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    
-                    // Existing Tags FlowRow (wrappable)
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        maxItemsInEachRow = 10 // This is flexible and will adjust based on screen width
-                    ) {
-                        note.tags.forEach { tag ->
-                            NoteTagView(state = tag, showRemoveButton = true, onRemoveClick = {removeTag(it.uid)})
-                        }
-                    }
-
                     // Simple Tag Dropdown with Button
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Add a tag:",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        
-                        Box {
+                        Box() {
                             OutlinedButton(
                                 onClick = { isDropdownExpanded = true },
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                modifier = Modifier.padding(vertical = 8.dp),
                             ) {
-                                Text("Select tag")
+                                Text("Add Tag")
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
                                     contentDescription = "Dropdown Arrow",
                                     modifier = Modifier.padding(start = 4.dp)
                                 )
                             }
-                            
+
                             DropdownMenu(
                                 expanded = isDropdownExpanded,
                                 onDismissRequest = { isDropdownExpanded = false },
-                                modifier = Modifier.width(200.dp)
+                                modifier = Modifier.width(200.dp),
+                                shape = RoundedCornerShape(16.dp)
                             ) {
                                 allTags.forEach { tag ->
                                     DropdownMenuItem(
@@ -233,6 +210,18 @@ fun EditNoteScreenView(
                                     }
                                 )
                             }
+                        }
+                    }
+
+                    // Existing Tags FlowRow (wrappable)
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        maxItemsInEachRow = 10 // This is flexible and will adjust based on screen width
+                    ) {
+                        note.tags.forEach { tag ->
+                            NoteTagView(state = tag, showRemoveButton = true, onRemoveClick = {removeTag(it.uid)})
                         }
                     }
                 }

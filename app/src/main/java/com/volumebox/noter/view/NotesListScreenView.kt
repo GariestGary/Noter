@@ -38,6 +38,7 @@ fun NotesListScreenView(
     notes: List<NoteState>,
     editNoteScreen: String,
     noteScreen: String,
+    onNavigate: () -> Unit = {},
     nav: NavController
 ) {
     val listState = rememberLazyListState()
@@ -85,7 +86,10 @@ fun NotesListScreenView(
                             items(notes) { note ->
                                 NoteView(
                                     state = note,
-                                    onClick = { nav.navigate(noteScreen + note.uid) }
+                                    onClick = {
+                                        onNavigate()
+                                        nav.navigate(noteScreen + note.uid)
+                                    }
                                 )
                             }
                         }

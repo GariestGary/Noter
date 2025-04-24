@@ -38,12 +38,12 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
     }
 
     NavHost(navController, startDestination = "notes") {
-        composable("notes") {
+        composable("notes") { back ->
             NotesListScreenView(
                 notes = notes,
                 editNoteScreen = "noteEdit/",
                 noteScreen = "noteView/",
-                nav = LocalNavController.current
+                nav = LocalNavController.current,
             )
         }
         navigation(startDestination = "noteEdit/new", route = "editing") {
@@ -85,7 +85,11 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
             }
             composable("noteEdit/new") { backStackEntry ->
                 val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
-                editViewModel.updateNote(editViewModel.sharedNote.value)
+
+                if(editViewModel.sharedNote.value.isEmpty()) {
+                    editViewModel.updateNote(NoteState(UUID.randomUUID().toString()))
+                }
+
                 val state by editViewModel.sharedNote.collectAsStateWithLifecycle()
 
                 EditNoteScreenView(
