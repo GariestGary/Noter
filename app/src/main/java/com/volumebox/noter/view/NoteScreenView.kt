@@ -2,6 +2,8 @@ package com.volumebox.noter.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,16 +31,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.volumebox.noter.states.NoteState
 import com.volumebox.noter.states.TagState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun NoteScreenView(state: NoteState) {
-    val nav = LocalNavController.current
+fun NoteScreenView(
+    state: NoteState,
+    editNoteScreen: String,
+    nav: NavController
+) {
 
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
@@ -65,36 +73,7 @@ fun NoteScreenView(state: NoteState) {
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    // Tags Section
-                    if (state.tags.isNotEmpty()) {
-                        Text(
-                            text = "Tags",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            state.tags.forEach { tag ->
-                                Surface(
-                                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                                    color = tag.color
-                                ) {
-                                    Text(
-                                        text = tag.name,
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                        color = if (tag.color.luminance() > 0.5f) Color.Black else Color.White
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
+                    
                     // Note Content
                     Text(
                         text = state.text,
@@ -102,6 +81,29 @@ fun NoteScreenView(state: NoteState) {
                         color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Start
                     )
+
+                    // Tags Section
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (state.tags.isNotEmpty()) {
+                        Text(
+                            text = "Tags",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            maxItemsInEachRow = 10
+                        ) {
+                            state.tags.forEach { tag ->
+                                NoteTagView(state = tag, showRemoveButton =  false)
+                            }
+                        }
+                    }
+
                 }
             }
         },
@@ -119,6 +121,15 @@ fun NoteScreenView(state: NoteState) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { nav.navigate(editNoteScreen + state.uid) }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Note",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -145,7 +156,9 @@ fun NoteScreenPreview() {
                     TagState(name = "Work", color = Color(0xFF4CAF50)),
                     TagState(name = "Meeting", color = Color(0xFF2196F3))
                 )
-            )
+            ),
+            editNoteScreen = "",
+            nav = NavController(LocalContext.current)
         )
     }
 }

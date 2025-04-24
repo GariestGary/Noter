@@ -5,13 +5,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.volumebox.noter.states.NoteState
 import com.volumebox.noter.states.TagState
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun NoteView(
     state: NoteState,
@@ -48,12 +58,21 @@ fun NoteView(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                LazyRow(
+                Spacer(modifier = Modifier.height(6.dp))
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = 10
                 ) {
-                    items(state.tags) { tag ->
-                        NoteTagView(tag)
+                    state.tags.forEach { tag ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = tag.color,
+                            modifier = Modifier.height(6.dp).width(32.dp)
+                        ){
+
+                        }
                     }
                 }
             }
@@ -103,7 +122,7 @@ fun NoteViewLongTitlePreview() {
                 text = "Short content",
                 tags = listOf(
                     TagState(name = "Important", color = Color(0xFF2196F3)),
-                    TagState(name = "Work", color = Color(0xFF9C27B0))
+                    TagState(name = "Work", color = Color(0xFF9C27B0)),
                 )
             ),
             onClick = {}

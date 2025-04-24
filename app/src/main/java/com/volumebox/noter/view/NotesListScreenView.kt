@@ -29,16 +29,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.volumebox.noter.states.NoteState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesListScreenView(
     notes: List<NoteState>,
-    addNoteClick: () -> Unit,
+    editNoteScreen: String,
+    noteScreen: String,
+    nav: NavController
 ) {
     val listState = rememberLazyListState()
-    val nav = LocalNavController.current
 
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
@@ -76,14 +78,14 @@ fun NotesListScreenView(
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 32.dp)
+                                        .padding(vertical = 32.dp, horizontal = 12.dp)
                                 )
                             }
                         } else {
                             items(notes) { note ->
                                 NoteView(
                                     state = note,
-                                    onClick = { nav.navigate("note_view/" + note.uid) }
+                                    onClick = { nav.navigate(noteScreen + note.uid) }
                                 )
                             }
                         }
@@ -93,7 +95,7 @@ fun NotesListScreenView(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = addNoteClick,
+                onClick = { nav.navigate( editNoteScreen + "new" ) },
                 shape = CircleShape,
                 modifier = Modifier.size(56.dp),
                 containerColor = MaterialTheme.colorScheme.primary

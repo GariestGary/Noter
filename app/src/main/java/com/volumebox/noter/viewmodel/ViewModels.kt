@@ -5,17 +5,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.volumebox.noter.database.Note
 import com.volumebox.noter.database.NoteRepository
 import com.volumebox.noter.database.NoteTag
 import com.volumebox.noter.states.NoteState
 import com.volumebox.noter.states.TagState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,7 +20,7 @@ import javax.inject.Inject
 class NoteViewModel @Inject constructor(private val repository: NoteRepository) : ViewModel() {
     // Note state
     private val _noteState = mutableStateOf(NoteState())
-    val state: NoteState get() = _noteState.value
+    val noteState: NoteState get() = _noteState.value
     
     // Tag state
     private val _tagState = MutableStateFlow(TagState())
@@ -51,27 +48,14 @@ class NoteViewModel @Inject constructor(private val repository: NoteRepository) 
     fun updateTagColor(color: Color) {
         _tagState.value.color = color
     }
-    
-    // Original methods preserved
-    fun addNote(name: String, text: String) {
+
+    fun upsertNote(note: NoteState) {
         viewModelScope.launch {
-            repository.addNote(name = name, text = text)
+            repository.upsert(note)
         }
     }
 
-    fun addNote(note: NoteState) {
-        viewModelScope.launch {
-            repository.addNote(note)
-        }
-    }
-    
-    fun addTag(name: String, color: Int = 0xFFFFFFF) {
-        viewModelScope.launch {
-            repository.addTag(NoteTag(name = name, color = color))
-        }
-    }
-
-    fun addTag(state: TagState) {
+    fun upsertTag(state: TagState) {
         viewModelScope.launch {
             repository.addTag(NoteTag(name = state.name, color = state.color.toArgb()))
         }

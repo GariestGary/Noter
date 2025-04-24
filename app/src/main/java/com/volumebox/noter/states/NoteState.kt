@@ -20,4 +20,11 @@ class NoteState(uid: String = "", name: String = "", text: String = "", tags: Li
         text = ""
         tags = emptyList()
     }
+
+    fun copyFrom(state: NoteState) {
+        uid = state.uid
+        name = state.name
+        text = state.text
+        tags = state.tags
+    }
 }

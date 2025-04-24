@@ -1,7 +1,10 @@
 package com.volumebox.noter.view
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,7 +32,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -46,27 +47,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.volumebox.noter.states.NoteState
 import com.volumebox.noter.states.TagState
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import com.volumebox.noter.viewmodel.EditViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddNoteScreenView(
+fun EditNoteScreenView(
     state: NoteState,
     allTags: List<TagState>,
-    addNote: (NoteState) -> Unit,
+    saveNote: (NoteState) -> Unit,
+    editTagScreen: String,
+    nav: NavController
 ) {
     var name by remember { mutableStateOf(state.name) }
     var text by remember { mutableStateOf(state.text) }
     var tags: List<TagState> by remember { mutableStateOf(state.tags) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    var selectedTag by remember { mutableStateOf<TagState?>(null) }
-    val nav = LocalNavController.current
+
+    fun removeTag(tagId: String) {
+        tags = tags.filterNot { it.uid == tagId }
+    }
 
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
@@ -132,22 +139,15 @@ fun AddNoteScreenView(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     
-                    // Existing Tags Row
-                    Row(
+                    // Existing Tags FlowRow (wrappable)
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        maxItemsInEachRow = 10 // This is flexible and will adjust based on screen width
                     ) {
                         tags.forEach { tag ->
-                            Surface(
-                                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                                color = tag.color
-                            ) {
-                                Text(
-                                    text = tag.name,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    color = if (tag.color.luminance() > 0.5f) Color.Black else Color.White
-                                )
-                            }
+                            NoteTagView(state = tag, showRemoveButton =  true, onRemoveClick =  {removeTag(it.uid)})
                         }
                     }
 
@@ -157,7 +157,7 @@ fun AddNoteScreenView(
                         onExpandedChange = { isDropdownExpanded = it }
                     ) {
                         OutlinedTextField(
-                            value = selectedTag?.name ?: "",
+                            value = "Select tag",
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
@@ -193,8 +193,7 @@ fun AddNoteScreenView(
                                         }
                                     },
                                     onClick = {
-                                        selectedTag = tag
-                                        if (tag !in tags) {
+                                        if (!tags.any{x -> x.uid == tag.uid}) {
                                             tags = tags + tag
                                         }
                                         isDropdownExpanded = false
@@ -219,7 +218,7 @@ fun AddNoteScreenView(
                                 },
                                 onClick = {
                                     isDropdownExpanded = false
-                                    nav.navigate("tag_edit/new")
+                                    nav.navigate(editTagScreen + "new")
                                 }
                             )
                         }
@@ -230,7 +229,8 @@ fun AddNoteScreenView(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    addNote.invoke(NoteState(name = name, text = text, tags = tags))
+                    saveNote.invoke(NoteState(uid = state.uid, name = name, text = text, tags = tags))
+                    nav.popBackStack()
                 },
                 shape = CircleShape,
                 modifier = Modifier.size(56.dp),
@@ -271,7 +271,7 @@ fun AddNoteScreenView(
 @Composable
 fun AddNoteScreenPreview() {
     MaterialTheme {
-        AddNoteScreenView(
+        EditNoteScreenView(
             state = NoteState(
                 name = "",
                 text = "",
@@ -286,7 +286,9 @@ fun AddNoteScreenPreview() {
                 TagState(name = "Ideas", color = Color(0xFF9C27B0)),
                 TagState(name = "Important", color = Color(0xFFF44336))
             ),
-            addNote = {}
+            saveNote = {},
+            editTagScreen = "",
+            NavController(LocalContext.current)
         )
     }
 } 

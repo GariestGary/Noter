@@ -15,9 +15,6 @@ import androidx.room.Relation
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.Update
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
-import dagger.Provides
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -65,16 +62,19 @@ data class NoteWithTags(
 @Dao
 interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg notes: Note)
+    suspend fun insert(vararg notes: Note)
 
     @Delete
     suspend fun delete(note: Note)
 
     @Update
-    suspend fun updateNotes(vararg notes: Note)
+    suspend fun update(vararg notes: Note)
 
     @Query("SELECT * FROM note")
     fun getAll(): Flow<List<Note>>
+
+    @Query("SELECT COUNT(*) FROM note WHERE uid = :id")
+    suspend fun exists(id: String): Boolean
 }
 
 @Dao
@@ -103,6 +103,9 @@ interface NoteWithTagsDao {
     @Transaction
     @Query("SELECT * FROM Note")
     fun getNotesWithTags(): Flow<List<NoteWithTags>>
+
+    @Query("DELETE FROM NoteTagCrossRef WHERE noteId = :noteId")
+    suspend fun clearAllTagsFromNote(noteId: String)
 
     @Transaction
     @Query("SELECT * FROM Note WHERE uid = :noteId")

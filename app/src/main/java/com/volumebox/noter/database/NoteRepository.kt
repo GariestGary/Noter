@@ -12,9 +12,17 @@ class NoteRepository @Inject constructor(
 ) {
     fun getAllNotes(): Flow<List<Note>> = noteDao.getAll()
 
-    suspend fun addNote(noteState: NoteState) {
-        val note = Note(name = noteState.name, text = noteState.text)
-        noteDao.insertAll(note)
+    suspend fun upsert(noteState: NoteState) {
+        val note = Note(noteState.uid, noteState.name, noteState.text)
+
+        if (noteDao.exists(noteState.uid)) {
+            noteDao.update(note)
+        } else {
+            noteDao.insert(note)
+        }
+
+        removeAllTagsFromNote(noteId = note.uid)
+
         for (tag in noteState.tags)
         {
             if(noteTagDao.tagExists(tag.uid)) {
@@ -23,11 +31,6 @@ class NoteRepository @Inject constructor(
                 createAndAddTagToNote(note.uid, tag.name, tag.color.toArgb())
             }
         }
-    }
-
-    suspend fun addNote(name: String, text: String) {
-        val note = Note(name = name, text = text)
-        noteDao.insertAll(note)
     }
 
     fun getAllNoteTags(): Flow<List<NoteTag>> = noteTagDao.getAll()
@@ -39,6 +42,10 @@ class NoteRepository @Inject constructor(
     fun getNotesWithTags(): Flow<List<NoteWithTags>> = noteWithTagsDao.getNotesWithTags()
 
     fun getNoteWithTags(noteId: String): Flow<NoteWithTags> = noteWithTagsDao.getNoteWithTags(noteId)
+
+    suspend fun removeAllTagsFromNote(noteId: String){
+        noteWithTagsDao.clearAllTagsFromNote(noteId)
+    }
 
     suspend fun addTagToNote(noteId: String, tagId: String) {
         val crossRef = NoteTagCrossRef(noteId = noteId, tagId = tagId)

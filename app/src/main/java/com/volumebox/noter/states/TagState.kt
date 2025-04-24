@@ -21,4 +21,10 @@ class TagState(uid: String = "", name: String = "", color: Color = Color.White) 
         name = ""
         color = Color.White
     }
+
+    fun copyFrom(state: TagState) {
+        uid = state.uid
+        name = state.name
+        color = state.color
+    }
 } 
