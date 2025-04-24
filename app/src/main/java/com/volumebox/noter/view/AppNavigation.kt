@@ -18,6 +18,7 @@ import com.volumebox.noter.states.NoteState
 import com.volumebox.noter.states.TagState
 import com.volumebox.noter.viewmodel.EditViewModel
 import com.volumebox.noter.viewmodel.NoteViewModel
+import java.util.UUID
 
 @Composable
 fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: NavHostController) {
@@ -59,10 +60,10 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
                         }
                     )
                     
-                    val editViewModel = backStackEntry.sharedViewModel(navController, initialNoteState, TagState())
+                    val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
+                    editViewModel.updateNote(initialNoteState)
                     val state by editViewModel.sharedNote.collectAsStateWithLifecycle()
 
-                    editViewModel.updateNote(initialNoteState)
 
                     EditNoteScreenView(
                         state = state,
@@ -71,12 +72,17 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
                         },
                         allTags = tags.map { TagState(it.uid, it.name, Color(it.color)) },
                         editTagScreen = "tagEdit/",
-                        nav = LocalNavController.current
+                        nav = LocalNavController.current,
+                        onNavigate = {
+                            editViewModel.updateNote(it)
+                        }
                     )
                 }
             }
             composable("noteEdit/new") { backStackEntry ->
-                val editViewModel = backStackEntry.sharedViewModel(navController, NoteState(), TagState())
+                val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
+                val initialState = NoteState(UUID.randomUUID().toString())
+                editViewModel.updateNote(initialState)
                 val state by editViewModel.sharedNote.collectAsStateWithLifecycle()
 
                 EditNoteScreenView(
@@ -86,7 +92,10 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
                     },
                     allTags = tags.map { TagState(it.uid, it.name, Color(it.color)) },
                     editTagScreen = "tagEdit/",
-                    nav = LocalNavController.current
+                    nav = LocalNavController.current,
+                    onNavigate = {
+                        editViewModel.updateNote(it)
+                    }
                 )
             }
             composable("tagEdit/{tagUid}"){ backStackEntry ->
@@ -95,21 +104,17 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
 
                 if(tag != null) {
                     val initialTag = TagState(tag.uid, tag.name, Color(tag.color))
-                    val editViewModel = backStackEntry.sharedViewModel(navController, NoteState(), initialTag)
-                    val state by editViewModel.sharedTag.collectAsStateWithLifecycle()
 
                     TagEditScreenView(
-                        tag = state,
+                        tag = initialTag,
                         onSave = {viewModel.upsertTag(it)},
                         nav = LocalNavController.current
                     )
                 }
             }
             composable("tagEdit/new"){ backStackEntry ->
-                val editViewModel = backStackEntry.sharedViewModel(navController, NoteState(), TagState())
-                val state by editViewModel.sharedTag.collectAsStateWithLifecycle()
                 TagEditScreenView(
-                    tag = state,
+                    tag = TagState(),
                     onSave = {
                         viewModel.upsertTag(it)
                     },
@@ -150,16 +155,4 @@ inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navControll
         navController.getBackStackEntry(navGraphRoute)
     }
     return viewModel(parentEntry)
-}
-
-@Composable
-inline fun NavBackStackEntry.sharedViewModel(navController: NavHostController, noteState: NoteState, tagState: TagState): EditViewModel {
-    val navGraphRoute = destination.parent?.route ?: return viewModel { EditViewModel.Factory(noteState, tagState).create(EditViewModel::class.java) }
-    val parentEntry = remember(this) {
-        navController.getBackStackEntry(navGraphRoute)
-    }
-    return viewModel(
-        viewModelStoreOwner = parentEntry,
-        factory = EditViewModel.Factory(noteState, tagState)
-    )
 }

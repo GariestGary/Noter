@@ -63,16 +63,15 @@ fun EditNoteScreenView(
     state: NoteState,
     allTags: List<TagState>,
     saveNote: (NoteState) -> Unit,
+    onNavigate: (NoteState) -> Unit,
     editTagScreen: String,
     nav: NavController
 ) {
-    var name by remember { mutableStateOf(state.name) }
-    var text by remember { mutableStateOf(state.text) }
-    var tags: List<TagState> by remember { mutableStateOf(state.tags) }
+    var note by remember { mutableStateOf(state) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
 
     fun removeTag(tagId: String) {
-        tags = tags.filterNot { it.uid == tagId }
+        note.tags = note.tags.filterNot { it.uid == tagId }
     }
 
     Scaffold(
@@ -103,8 +102,8 @@ fun EditNoteScreenView(
 
                     // Note Name Field
                     OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
+                        value = note.name,
+                        onValueChange = { note.name = it },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Title") },
                         placeholder = { Text("Enter note title") },
@@ -118,8 +117,8 @@ fun EditNoteScreenView(
 
                     // Note Content Field
                     OutlinedTextField(
-                        value = text,
-                        onValueChange = { text = it },
+                        value = note.text,
+                        onValueChange = { note.text = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(300.dp),
@@ -146,7 +145,7 @@ fun EditNoteScreenView(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         maxItemsInEachRow = 10 // This is flexible and will adjust based on screen width
                     ) {
-                        tags.forEach { tag ->
+                        note.tags.forEach { tag ->
                             NoteTagView(state = tag, showRemoveButton =  true, onRemoveClick =  {removeTag(it.uid)})
                         }
                     }
@@ -193,8 +192,8 @@ fun EditNoteScreenView(
                                         }
                                     },
                                     onClick = {
-                                        if (!tags.any{x -> x.uid == tag.uid}) {
-                                            tags = tags + tag
+                                        if (!note.tags.any{x -> x.uid == tag.uid}) {
+                                            note.tags += tag
                                         }
                                         isDropdownExpanded = false
                                     }
@@ -218,6 +217,7 @@ fun EditNoteScreenView(
                                 },
                                 onClick = {
                                     isDropdownExpanded = false
+                                    onNavigate(note)
                                     nav.navigate(editTagScreen + "new")
                                 }
                             )
@@ -229,7 +229,7 @@ fun EditNoteScreenView(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    saveNote.invoke(NoteState(uid = state.uid, name = name, text = text, tags = tags))
+                    saveNote.invoke(NoteState(uid = state.uid, name = note.name, text = note.text, tags = note.tags))
                     nav.popBackStack()
                 },
                 shape = CircleShape,
@@ -288,7 +288,8 @@ fun AddNoteScreenPreview() {
             ),
             saveNote = {},
             editTagScreen = "",
-            NavController(LocalContext.current)
+            nav = NavController(LocalContext.current),
+            onNavigate = {}
         )
     }
 } 
