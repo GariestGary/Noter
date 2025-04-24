@@ -27,12 +27,18 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
     val tags by viewModel.tags.collectAsState(initial = emptyList())
 
     val notes = remember(notesWithTags) {
-        notesWithTags.map { (note, tagIds) ->
+        notesWithTags.map { (note, tags) ->
             NoteState(
                 uid = note.uid,
                 name = note.name,
                 text = note.text,
-                tags = tagIds.map { TagState(it.uid, it.name, Color(it.color)) }
+                tags = tags.map {
+                    TagState(
+                        it.uid,
+                        it.name,
+                        Color(it.color)
+                    )
+                }
             )
         }
     }
@@ -44,6 +50,13 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
                 editNoteScreen = "noteEdit/",
                 noteScreen = "noteView/",
                 nav = LocalNavController.current,
+                tags = tags.map {
+                    TagState(
+                        it.uid,
+                        it.name,
+                        Color(it.color)
+                    )
+                }
             )
         }
         navigation(startDestination = "noteEdit/new", route = "editing") {
