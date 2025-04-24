@@ -1,6 +1,7 @@
 package com.volumebox.noter.view
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,42 +48,44 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
         }
         navigation(startDestination = "noteEdit/new", route = "editing") {
             composable("noteEdit/{noteUid}") { backStackEntry ->
-                val uid = backStackEntry.arguments?.getString("noteUid")
-                val note = notesWithTags.find { note -> note.note.uid == uid }
-                
-                if(note != null) {
-                    val initialNoteState = NoteState(
-                        note.note.uid,
-                        note.note.name,
-                        note.note.text,
-                        note.tags.map {
-                            TagState(it.uid, it.name, Color(it.color))
-                        }
-                    )
-                    
-                    val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
-                    editViewModel.updateNote(initialNoteState)
-                    val state by editViewModel.sharedNote.collectAsStateWithLifecycle()
+                val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
 
-
-                    EditNoteScreenView(
-                        state = state,
-                        saveNote = {
-                            viewModel.upsertNote(it)
-                        },
-                        allTags = tags.map { TagState(it.uid, it.name, Color(it.color)) },
-                        editTagScreen = "tagEdit/",
-                        nav = LocalNavController.current,
-                        onNavigate = {
-                            editViewModel.updateNote(it)
-                        }
-                    )
+                if(editViewModel.sharedNote.value.isEmpty()){
+                    val uid = backStackEntry.arguments?.getString("noteUid")
+                    val note = notesWithTags.find { note -> note.note.uid == uid }
+                    if(note != null){
+                        val initialNoteState = NoteState(
+                            note.note.uid,
+                            note.note.name,
+                            note.note.text,
+                            note.tags.map {
+                                TagState(it.uid, it.name, Color(it.color))
+                            }
+                        )
+                        editViewModel.updateNote(initialNoteState)
+                    }
+                }else{
+                    editViewModel.updateNote(editViewModel.sharedNote.value)
                 }
+
+                val state by editViewModel.sharedNote.collectAsStateWithLifecycle()
+
+                EditNoteScreenView(
+                    state = state,
+                    saveNote = {
+                        viewModel.upsertNote(it)
+                    },
+                    allTags = tags.map { TagState(it.uid, it.name, Color(it.color)) },
+                    editTagScreen = "tagEdit/",
+                    nav = LocalNavController.current,
+                    onNavigate = {
+                        editViewModel.updateNote(it)
+                    }
+                )
             }
             composable("noteEdit/new") { backStackEntry ->
                 val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
-                val initialState = NoteState(UUID.randomUUID().toString())
-                editViewModel.updateNote(initialState)
+                editViewModel.updateNote(editViewModel.sharedNote.value)
                 val state by editViewModel.sharedNote.collectAsStateWithLifecycle()
 
                 EditNoteScreenView(
@@ -125,6 +128,7 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
         composable("noteView/{noteUid}"){ backStackEntry ->
             val uid = backStackEntry.arguments?.getString("noteUid")
             val note = notesWithTags.find { note -> note.note.uid == uid }
+            val editViewModel = backStackEntry.sharedViewModel<EditViewModel>(navController)
 
             if(note != null) {
                 NoteScreenView(
@@ -141,7 +145,10 @@ fun AppNavigation(viewModel: NoteViewModel = hiltViewModel(), navController: Nav
                         }
                     ),
                     editNoteScreen = "noteEdit/",
-                    nav = LocalNavController.current
+                    nav = LocalNavController.current,
+                    onNavigate = {
+                        editViewModel.updateNote(it)
+                    }
                 )
             }
         }

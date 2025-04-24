@@ -3,8 +3,6 @@ package com.volumebox.noter.states
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.volumebox.noter.database.Note
-import com.volumebox.noter.database.NoteTag
 
 class NoteState(uid: String = "", name: String = "", text: String = "", tags: List<TagState> = emptyList()) {
     // Use mutableStateOf to make these properties observable by Compose
@@ -19,6 +17,10 @@ class NoteState(uid: String = "", name: String = "", text: String = "", tags: Li
         name = ""
         text = ""
         tags = emptyList()
+    }
+
+    fun isEmpty() : Boolean{
+        return uid.isEmpty()
     }
 
     fun copyFrom(state: NoteState) {

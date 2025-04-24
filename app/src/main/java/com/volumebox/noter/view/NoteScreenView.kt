@@ -44,6 +44,7 @@ import com.volumebox.noter.states.TagState
 fun NoteScreenView(
     state: NoteState,
     editNoteScreen: String,
+    onNavigate: (NoteState) -> Unit,
     nav: NavController
 ) {
 
@@ -126,7 +127,12 @@ fun NoteScreenView(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { nav.navigate(editNoteScreen + state.uid) }) {
+                    IconButton(
+                        onClick = {
+                            onNavigate.invoke(state)
+                            nav.navigate(editNoteScreen + state.uid)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit Note",
@@ -158,7 +164,8 @@ fun NoteScreenPreview() {
                 )
             ),
             editNoteScreen = "",
-            nav = NavController(LocalContext.current)
+            nav = NavController(LocalContext.current),
+            onNavigate = {}
         )
     }
 }

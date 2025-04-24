@@ -2,6 +2,7 @@ package com.volumebox.noter.view
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,17 +25,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -51,11 +56,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import com.volumebox.noter.states.NoteState
-import com.volumebox.noter.states.TagState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import com.volumebox.noter.viewmodel.EditViewModel
+import com.volumebox.noter.states.NoteState
+import com.volumebox.noter.states.TagState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -146,81 +150,89 @@ fun EditNoteScreenView(
                         maxItemsInEachRow = 10 // This is flexible and will adjust based on screen width
                     ) {
                         note.tags.forEach { tag ->
-                            NoteTagView(state = tag, showRemoveButton =  true, onRemoveClick =  {removeTag(it.uid)})
+                            NoteTagView(state = tag, showRemoveButton = true, onRemoveClick = {removeTag(it.uid)})
                         }
                     }
 
-                    // Tag Selection Dropdown
-                    ExposedDropdownMenuBox(
-                        expanded = isDropdownExpanded,
-                        onExpandedChange = { isDropdownExpanded = it }
+                    // Simple Tag Dropdown with Button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedTextField(
-                            value = "Select tag",
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(),
-                            label = { Text("Select Tag") },
-                            placeholder = { Text("Choose a tag") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            )
+                        Text(
+                            text = "Add a tag:",
+                            style = MaterialTheme.typography.bodyMedium
                         )
-
-                        ExposedDropdownMenu(
-                            expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false }
-                        ) {
-                            allTags.forEach { tag ->
+                        
+                        Box {
+                            OutlinedButton(
+                                onClick = { isDropdownExpanded = true },
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            ) {
+                                Text("Select tag")
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Dropdown Arrow",
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
+                            
+                            DropdownMenu(
+                                expanded = isDropdownExpanded,
+                                onDismissRequest = { isDropdownExpanded = false },
+                                modifier = Modifier.width(200.dp)
+                            ) {
+                                allTags.forEach { tag ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Surface(
+                                                    modifier = Modifier
+                                                        .size(24.dp)
+                                                        .clip(CircleShape),
+                                                    color = tag.color
+                                                ) {}
+                                                Text(tag.name)
+                                            }
+                                        },
+                                        onClick = {
+                                            if (!note.tags.any{x -> x.uid == tag.uid}) {
+                                                note.tags += tag
+                                            }
+                                            isDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                                
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                
                                 DropdownMenuItem(
                                     text = {
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Surface(
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                                    .clip(CircleShape),
-                                                color = tag.color
-                                            ) {}
-                                            Text(tag.name)
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "Add Tag",
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                            Text("Create new tag...")
                                         }
                                     },
                                     onClick = {
-                                        if (!note.tags.any{x -> x.uid == tag.uid}) {
-                                            note.tags += tag
-                                        }
                                         isDropdownExpanded = false
+                                        onNavigate(note)
+                                        nav.navigate(editTagScreen + "new")
                                     }
                                 )
                             }
-                            
-                            // Add "Create new tag..." option at the end of the dropdown
-                            DropdownMenuItem(
-                                text = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Add,
-                                            contentDescription = "Add Tag",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text("Create new tag...")
-                                    }
-                                },
-                                onClick = {
-                                    isDropdownExpanded = false
-                                    onNavigate(note)
-                                    nav.navigate(editTagScreen + "new")
-                                }
-                            )
                         }
                     }
                 }
@@ -292,4 +304,4 @@ fun AddNoteScreenPreview() {
             onNavigate = {}
         )
     }
-} 
+}
