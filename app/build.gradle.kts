@@ -77,4 +77,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.glance.material3)
+    implementation(libs.glance.material)
 }

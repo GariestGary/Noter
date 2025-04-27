@@ -19,7 +19,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,11 +43,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.volumebox.noter.states.NoteState
 import com.volumebox.noter.states.TagState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +75,7 @@ fun NotesListScreenView(
     } else {
         notes.filter { note ->
             // Only show notes that contain ALL selected tags
-            selectedTags.all { selectedTag -> selectedTag in note.tags }
+            selectedTags.all { selectedTag -> selectedTag.uid in note.tags.map { it.uid } }
         }
     }
 
@@ -106,13 +117,41 @@ fun NotesListScreenView(
                                     .fillMaxWidth()
                                     .menuAnchor(),
                                 shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.surface
-                            ) {
-                                Text(
-                                    text = if (selectedTags.isEmpty()) "Filter by tags" else "${selectedTags.size} tags selected",
-                                    modifier = Modifier.padding(16.dp),
-                                    style = MaterialTheme.typography.bodyLarge
+                                color = MaterialTheme.colorScheme.surface,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                                 )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = if (selectedTags.isEmpty()) "Filter by tags" else "${selectedTags.size} tags selected",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    AnimatedContent(
+                                        targetState = expanded,
+                                        transitionSpec = {
+                                            fadeIn(animationSpec = tween(150)) togetherWith
+                                            fadeOut(animationSpec = tween(150))
+                                        },
+                                        label = "Arrow animation"
+                                    ) { isExpanded ->
+                                        Icon(
+                                            imageVector = if (isExpanded) 
+                                                Icons.Default.KeyboardArrowUp 
+                                            else 
+                                                Icons.Default.KeyboardArrowDown,
+                                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
                             }
 
                             ExposedDropdownMenu(
@@ -121,7 +160,19 @@ fun NotesListScreenView(
                             ) {
                                 tags.forEach { tag ->
                                     DropdownMenuItem(
-                                        text = { Text(tag.name) },
+                                        text = { 
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                Surface(
+                                                    color = tag.color,
+                                                    shape = CircleShape,
+                                                    modifier = Modifier.size(16.dp)
+                                                ) {}
+                                                Text(tag.name)
+                                            }
+                                        },
                                         onClick = {
                                             selectedTags = if (selectedTags.contains(tag)) {
                                                 selectedTags - tag
@@ -130,11 +181,13 @@ fun NotesListScreenView(
                                             }
                                         },
                                         leadingIcon = {
-                                            Surface(
-                                                color = tag.color,
-                                                shape = CircleShape,
-                                                modifier = Modifier.size(16.dp)
-                                            ) {}
+                                            if(selectedTags.contains(tag)){
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    contentDescription = "Selected",
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
                                         }
                                     )
                                 }
